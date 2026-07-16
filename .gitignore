@@ -1,0 +1,23 @@
+# 대용량 원자료 — Zenodo에서 재다운로드 (README의 데이터 준비 절차 참조)
+data/
+data_raw/
+data_interim/
+data_processed/
+
+# 저작권 보호 논문 PDF — 공개 저장소 재배포 금지 (서지정보는 연구계획서 §17 참조)
+references/**/*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# 대용량 중간산출물
+*.parquet
+*.zip
+
+# OS / IDE
+.DS_Store
+Thumbs.db

@@ -126,9 +126,9 @@ def fig_speed_by_intersection(s: pd.DataFrame):
 def plot_summary(s: pd.DataFrame, outdir: str = "outputs/speed") -> None:
     """속도 분포 그림 3장을 저장한다 (py 실행 시 자동, 노트북은 위 fig_* 함수로 표시)."""
     os.makedirs(outdir, exist_ok=True)
-    for name, fig in [("dist_moving_speed", fig_moving_speed(s)),
-                      ("dist_stopped", fig_stopped(s)),
-                      ("speed_by_intersection", fig_speed_by_intersection(s))]:
+    for name, fig in [("분포_이동속도", fig_moving_speed(s)),
+                      ("분포_정지비율", fig_stopped(s)),
+                      ("분포_교차로별속도", fig_speed_by_intersection(s))]:
         fig.savefig(os.path.join(outdir, name + ".png"), dpi=120)
         plt.close(fig)
 
@@ -154,7 +154,7 @@ def plot_validation(sample: str = "data/interim/2022-10-04_A/2022-10-04_A_AM1.cs
     ax.plot(lim, lim, "r--", lw=1, label="y=x")
     ax.set_xlabel("제공 속도 (km/h)"); ax.set_ylabel("재계산 속도 (km/h)")
     ax.set_title(f"재계산 vs 제공 — r={r:.3f} (일치)"); ax.legend()
-    fig.tight_layout(); fig.savefig(os.path.join(outdir, "speed_recompute_vs_provided.png"), dpi=120); plt.close(fig)
+    fig.tight_layout(); fig.savefig(os.path.join(outdir, "검증_속도일치.png"), dpi=120); plt.close(fig)
 
     t0 = v["t"].iloc[0]
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -162,7 +162,7 @@ def plot_validation(sample: str = "data/interim/2022-10-04_A/2022-10-04_A_AM1.cs
     ax.plot(v["t"] - t0, v["sp"], color="crimson", lw=1.3, label="제공(정지 구간 NaN)")
     ax.set_xlabel("시간 (초)"); ax.set_ylabel("속도 (km/h)")
     ax.set_title(f"차량 {vid} 속도 프로파일 — 재계산이 정지 구간을 채움"); ax.legend()
-    fig.tight_layout(); fig.savefig(os.path.join(outdir, "speed_profile.png"), dpi=120); plt.close(fig)
+    fig.tight_layout(); fig.savefig(os.path.join(outdir, "검증_속도프로파일.png"), dpi=120); plt.close(fig)
 
     w2 = v.iloc[100:400]
     fig, ax = plt.subplots(figsize=(10, 4))
@@ -170,7 +170,7 @@ def plot_validation(sample: str = "data/interim/2022-10-04_A/2022-10-04_A_AM1.cs
     ax.plot(w2["t"] - w2["t"].iloc[0], w2["speed_smooth"], color="#4C78A8", lw=1.6, label="평활(11프레임 중앙)")
     ax.set_xlabel("시간 (초)"); ax.set_ylabel("속도 (km/h)")
     ax.set_title(f"평활 효과 — 원시 std {v.speed_kmh.std():.1f} → 평활 {v.speed_smooth.std():.1f}"); ax.legend()
-    fig.tight_layout(); fig.savefig(os.path.join(outdir, "speed_smoothing.png"), dpi=120); plt.close(fig)
+    fig.tight_layout(); fig.savefig(os.path.join(outdir, "검증_평활효과.png"), dpi=120); plt.close(fig)
 
 
 def main() -> None:

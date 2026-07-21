@@ -24,6 +24,11 @@ import sys
 
 import numpy as np
 import pandas as pd
+import matplotlib
+import matplotlib.pyplot as plt
+
+plt.rcParams["font.family"] = "Malgun Gothic"   # 한글 라벨(Windows)
+plt.rcParams["axes.unicode_minus"] = False
 
 GAP_S = 0.1        # Δt가 이보다 크면 연속 프레임 아님 → 속도 NaN
 SMOOTH = 11        # 이동 중앙값 창(프레임, ~0.37초)
@@ -77,6 +82,57 @@ def summarize(df: pd.DataFrame, name: str) -> dict:
     }
 
 
+def fig_moving_speed(s: pd.DataFrame):
+    """세션별 이동 속도 중앙값 분포."""
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.hist(s["moving_median_kmh"].dropna(), bins=25, color="#4C78A8", edgecolor="white")
+    m = s["moving_median_kmh"].median()
+    ax.axvline(m, color="crimson", ls="--", label=f"중앙 {m:.1f} km/h")
+    ax.set_xlabel("세션 이동 속도 중앙값 (km/h)")
+    ax.set_ylabel("세션 수")
+    ax.set_title("세션별 이동 속도 분포 (800개 세션)")
+    ax.legend()
+    fig.tight_layout()
+    return fig
+
+
+def fig_stopped(s: pd.DataFrame):
+    """세션별 정지(<5km/h) 프레임 비율 분포."""
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.hist(s["stopped_pct"].dropna(), bins=25, color="#72B7B2", edgecolor="white")
+    m = s["stopped_pct"].median()
+    ax.axvline(m, color="crimson", ls="--", label=f"중앙 {m:.1f}%")
+    ax.set_xlabel("정지(<5km/h) 프레임 비율 (%)")
+    ax.set_ylabel("세션 수")
+    ax.set_title("세션별 정지 프레임 비율 분포")
+    ax.legend()
+    fig.tight_layout()
+    return fig
+
+
+def fig_speed_by_intersection(s: pd.DataFrame):
+    """교차로별 이동 속도(세션 중앙값들의 중앙값)."""
+    inter = s["file"].str.rsplit("_", n=2).str[1]
+    g = s.assign(intersection=inter).groupby("intersection")["moving_median_kmh"].median().sort_values()
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(g.index, g.values, color="#4C78A8")
+    ax.set_xlabel("교차로")
+    ax.set_ylabel("이동 속도 중앙값 (km/h)")
+    ax.set_title("교차로별 이동 속도")
+    fig.tight_layout()
+    return fig
+
+
+def plot_summary(s: pd.DataFrame, outdir: str = "outputs/speed") -> None:
+    """속도 분포 그림 3장을 저장한다 (py 실행 시 자동, 노트북은 위 fig_* 함수로 표시)."""
+    os.makedirs(outdir, exist_ok=True)
+    for name, fig in [("dist_moving_speed", fig_moving_speed(s)),
+                      ("dist_stopped", fig_stopped(s)),
+                      ("speed_by_intersection", fig_speed_by_intersection(s))]:
+        fig.savefig(os.path.join(outdir, name + ".png"), dpi=120)
+        plt.close(fig)
+
+
 def main() -> None:
     src = sys.argv[1] if len(sys.argv) > 1 else "data/interim"
     out = sys.argv[2] if len(sys.argv) > 2 else "data/processed"
@@ -101,7 +157,16 @@ def main() -> None:
           f"범위 {s.moving_median_kmh.min():.0f}~{s.moving_median_kmh.max():.0f}")
     print(f"정지 프레임 비율: 중앙 {s.stopped_pct.median():.1f}%")
     print(f"저장: {out}/speed_summary.csv")
+    plot_summary(s)
+    print("그림 저장: outputs/speed/")
 
 
 if __name__ == "__main__":
-    main()
+    matplotlib.use("Agg")   # 화면 없이 그림 저장
+    if len(sys.argv) > 1 and sys.argv[1] == "plots":
+        # 800개 재실행 없이 speed_summary.csv로 그림만 다시 저장
+        s = pd.read_csv("data/processed/speed_summary.csv")
+        plot_summary(s)
+        print("그림 저장: outputs/speed/")
+    else:
+        main()

@@ -93,8 +93,9 @@ def thresholds_table(ttc: pd.DataFrame, pet: pd.DataFrame) -> pd.DataFrame:
 
 
 def _split_half_once(df: pd.DataFrame, col: str, rng) -> dict:
-    """세션 단위 무작위 반분할 → 임계값 이동량 + 반쪽B 사건 판정 Jaccard."""
-    sess = df["sess_key"].unique()
+    """세션 단위 무작위 반분할 → 임계값 이동량 + 반쪽B 사건 판정 Jaccard.
+    주의: unique()가 Arrow 배열을 줄 수 있어 numpy로 변환 후 셔플(중복 방지)."""
+    sess = np.asarray(df["sess_key"].unique(), dtype=object)
     if len(sess) < 4:
         return None
     rng.shuffle(sess)

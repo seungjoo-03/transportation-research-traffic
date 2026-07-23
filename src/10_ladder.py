@@ -56,8 +56,8 @@ def ladder_for(df, col, indicator):
         q_own = q5(tv)
         if pd.isna(q_own):
             continue
-        sess_keys = train["sess_key"].unique()
-        dates = train["date"].unique()
+        sess_keys = np.asarray(train["sess_key"].unique(), dtype=object)   # Arrow→numpy
+        dates = np.asarray(train["date"].unique(), dtype=object)
         for name, unit, k in LEVELS:
             draws = 1 if unit == "all" else B
             for b in range(draws):
